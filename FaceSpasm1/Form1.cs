@@ -18,8 +18,9 @@ namespace FaceSpasm1
         FaceRecognizer recognizer = new FisherFaceRecognizer(0, 3500);//4000
         private Capture _capture = new Emgu.CV.Capture();
         private CascadeClassifier _cascadeClassifier = new CascadeClassifier(Application.StartupPath + "/haarcascade_frontalface_default.xml");
+        private CascadeClassifier _mouthClassifier = new CascadeClassifier(Application.StartupPath + "/haarcascade_mcs_mouth.xml");
         Random rnd = new Random();
-
+        int lastImage = 0;
         public Form1()
         {
             InitializeComponent();
@@ -50,11 +51,36 @@ namespace FaceSpasm1
                 {
 
                     int foo = rnd.Next(0, faces.Count());
+
+                    if(faces.Count() > 1)
+                    {
+                        while(foo == lastImage)
+                        {
+                            foo = rnd.Next(0, faces.Count());
+                        }
+                    }
+
+
                     imageFrame = imageFrame.GetSubRect(faces[foo]);
+
+                    var grayframe_m = imageFrame.Convert<Gray, byte>();
+                    var mouths = _mouthClassifier.DetectMultiScale(grayframe_m, 1.1, 10, Size.Empty);
+
+                    foreach (var mouth in mouths)
+                    {
+                        //imageFrame.Draw(mouth, new Bgr(Color.BurlyWood), 3); //the detected face(s) is highlighted here using a box that is drawn around it/them
+                        var mouthImg = imageFrame.Copy();
+                        mouthImg.ROI = mouth;
+                        mouthImg = mouthImg.Flip(Emgu.CV.CvEnum.FlipType.Vertical);
+                        CvInvoke.cvCopy(mouthImg, imageFrame, IntPtr.Zero);
+                    }
+
+                    lastImage = foo;
                 }
 
                 Console.WriteLine(faces.Count());
             }
+
             imageBox1.Image = imageFrame;
         }
     }

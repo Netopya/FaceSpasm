@@ -37,6 +37,7 @@
             // timer1
             // 
             this.timer1.Enabled = true;
+            this.timer1.Interval = 5000;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
             // imageBox1
@@ -56,7 +57,8 @@
             this.ClientSize = new System.Drawing.Size(284, 261);
             this.Controls.Add(this.imageBox1);
             this.Name = "Form1";
-            this.Text = "Form1";
+            this.Text = "Face Spasm!";
+            this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.Load += new System.EventHandler(this.Form1_Load);
             ((System.ComponentModel.ISupportInitialize)(this.imageBox1)).EndInit();
             this.ResumeLayout(false);
