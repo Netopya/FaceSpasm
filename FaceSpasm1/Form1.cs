@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Media;
 
 namespace FaceSpasm1
 {
@@ -125,6 +126,15 @@ namespace FaceSpasm1
                 myPercent = 0;
 
             imageBox1.Image = imageFrame;
+        }
+
+        private void playSound()
+        {
+            int soundIndex = 0;
+            Random randy = new Random();
+            soundIndex = randy.Next(0, 8);
+            SoundPlayer simpleSound = new SoundPlayer(@"c:\Windows\Media\chimes.wav");
+            simpleSound.Play();
         }
 
 
