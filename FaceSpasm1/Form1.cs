@@ -91,8 +91,8 @@ namespace FaceSpasm1
             {
                 
                 imageFrame = imageFrame.GetSubRect(interpolateRect(current, next, myPercent));
-
-                myPercent += 10;
+                double convertedPercent = myPercent;
+                double gauss = (Math.Pow(Math.E, ((-1* (Math.Pow(convertedPercent, 2))) / 2) ))/(Math.Sqrt(Math.PI*2));
             }
 
             
