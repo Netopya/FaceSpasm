@@ -43,9 +43,9 @@ namespace FaceSpasm1
 
         DateTime startTime = DateTime.Now;
         const double transitionTime = 1000;
-
         Phases currentPhase = Phases.NOFACE;
         Phases lastPhase = Phases.NOFACE;
+        
         private int interpolate(int a, int b, int percentage)
         {
             double smoothedPercentage = smooth(percentage);
@@ -123,7 +123,9 @@ namespace FaceSpasm1
             
 
             if (myPercent > 100)
+            {
                 myPercent = 0;
+            }                
 
             imageBox1.Image = imageFrame;
         }
@@ -132,8 +134,9 @@ namespace FaceSpasm1
         {
             int soundIndex = 0;
             Random randy = new Random();
-            soundIndex = randy.Next(0, 8);
-            SoundPlayer simpleSound = new SoundPlayer(@"c:\Windows\Media\chimes.wav");
+            soundIndex = randy.Next(1, 9);
+            String filepath = (Application.StartupPath + "/SFX/spring" + soundIndex + "wav.wav");
+            SoundPlayer simpleSound = new SoundPlayer(filepath);
             simpleSound.Play();
         }
 
