@@ -20,7 +20,23 @@ namespace FaceSpasm1
         private CascadeClassifier _cascadeClassifier = new CascadeClassifier(Application.StartupPath + "/haarcascade_frontalface_default.xml");
         private CascadeClassifier _mouthClassifier = new CascadeClassifier(Application.StartupPath + "/haarcascade_mcs_mouth.xml");
         Random rnd = new Random();
+
+        Rectangle next = new Rectangle(1, 1, 1, 1);
+        Rectangle current = new Rectangle(1, 1, 1, 1);
+        int myPercent = 0;
+
         int lastImage = 0;
+
+        private int interpolate(int a, int b, int percentage)
+        {
+            return (a * (100 - percentage) / 100)  + (b * (percentage) / 100);
+        }
+
+        private Rectangle interpolateRect(Rectangle a, Rectangle b, int percentage)
+        {
+            return new Rectangle(interpolate(a.X, b.X, percentage), interpolate(a.Y, b.Y, percentage), interpolate(a.Width, b.Width, percentage), interpolate(a.Height, b.Height, percentage));
+        }
+
         public Form1()
         {
             InitializeComponent();
@@ -36,9 +52,8 @@ namespace FaceSpasm1
             var imageFrame = _capture.QueryFrame().ToImage<Bgr, Byte>();
 
 
-            if (imageFrame != null)
+            if (imageFrame != null && myPercent == 0)
             {
-
                 var grayframe = imageFrame.Convert<Gray, byte>();
                 var faces = _cascadeClassifier.DetectMultiScale(grayframe, 1.1, 10, Size.Empty); //the actual face detection happens here
                 foreach (var face in faces)
@@ -49,6 +64,7 @@ namespace FaceSpasm1
 
                 if (faces.Count() > 0)
                 {
+                    current = new Rectangle(next.Location, next.Size);
 
                     int foo = rnd.Next(0, faces.Count());
 
@@ -60,26 +76,29 @@ namespace FaceSpasm1
                         }
                     }
 
+                    next = faces[foo];
 
-                    imageFrame = imageFrame.GetSubRect(faces[foo]);
-
-                    var grayframe_m = imageFrame.Convert<Gray, byte>();
-                    var mouths = _mouthClassifier.DetectMultiScale(grayframe_m, 1.1, 10, Size.Empty);
-
-                    foreach (var mouth in mouths)
-                    {
-                        //imageFrame.Draw(mouth, new Bgr(Color.BurlyWood), 3); //the detected face(s) is highlighted here using a box that is drawn around it/them
-                        var mouthImg = imageFrame.Copy();
-                        mouthImg.ROI = mouth;
-                        mouthImg = mouthImg.Flip(Emgu.CV.CvEnum.FlipType.Vertical);
-                        CvInvoke.cvCopy(mouthImg, imageFrame, IntPtr.Zero);
-                    }
+                    imageFrame = imageFrame.GetSubRect(current);
 
                     lastImage = foo;
                 }
 
                 Console.WriteLine(faces.Count());
+
+                myPercent++;
             }
+            else if(imageFrame != null)
+            {
+                
+                imageFrame = imageFrame.GetSubRect(interpolateRect(current, next, myPercent));
+
+                myPercent += 10;
+            }
+
+            
+
+            if (myPercent > 100)
+                myPercent = 0;
 
             imageBox1.Image = imageFrame;
         }
