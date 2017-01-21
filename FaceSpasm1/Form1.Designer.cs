@@ -31,12 +31,12 @@
             this.components = new System.ComponentModel.Container();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.imageBox1 = new Emgu.CV.UI.ImageBox();
+            this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             ((System.ComponentModel.ISupportInitialize)(this.imageBox1)).BeginInit();
             this.SuspendLayout();
             // 
             // timer1
             // 
-            this.timer1.Enabled = true;
             this.timer1.Interval = 42;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
@@ -49,6 +49,10 @@
             this.imageBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.imageBox1.TabIndex = 2;
             this.imageBox1.TabStop = false;
+            // 
+            // backgroundWorker1
+            // 
+            this.backgroundWorker1.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorker1_DoWork);
             // 
             // Form1
             // 
@@ -70,6 +74,7 @@
 
         private System.Windows.Forms.Timer timer1;
         private Emgu.CV.UI.ImageBox imageBox1;
+        private System.ComponentModel.BackgroundWorker backgroundWorker1;
     }
 }
 
