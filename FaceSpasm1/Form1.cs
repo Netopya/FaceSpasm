@@ -29,7 +29,14 @@ namespace FaceSpasm1
 
         private int interpolate(int a, int b, int percentage)
         {
-            return (a * (100 - percentage) / 100)  + (b * (percentage) / 100);
+            double smoothedPercentage = smooth(percentage);
+            return (int)((a * (1 - smoothedPercentage))  + (b * (smoothedPercentage)));
+        }
+
+        private double smooth(int percentage)
+        {
+            double convertedPercentage = (((percentage) / 100.0) * 5.6) - 2.8;
+            return ((Erf(convertedPercentage / (Math.Sqrt(2)))) / 2.0) + 0.5;
         }
 
         private Rectangle interpolateRect(Rectangle a, Rectangle b, int percentage)
@@ -91,8 +98,7 @@ namespace FaceSpasm1
             {
                 
                 imageFrame = imageFrame.GetSubRect(interpolateRect(current, next, myPercent));
-                double convertedPercent = myPercent;
-                double gauss = (Math.Pow(Math.E, ((-1* (Math.Pow(convertedPercent, 2))) / 2) ))/(Math.Sqrt(Math.PI*2));
+                myPercent += 10;
             }
 
             
@@ -102,5 +108,28 @@ namespace FaceSpasm1
 
             imageBox1.Image = imageFrame;
         }
-    }
+
+        static double Erf(double x)
+        {
+            // constants
+            double a1 = 0.254829592;
+            double a2 = -0.284496736;
+            double a3 = 1.421413741;
+            double a4 = -1.453152027;
+            double a5 = 1.061405429;
+            double p = 0.3275911;
+
+            // Save the sign of x
+            int sign = 1;
+            if (x < 0)
+                sign = -1;
+            x = Math.Abs(x);
+
+            // A&S formula 7.1.26
+            double t = 1.0 / (1.0 + p * x);
+            double y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.Exp(-x * x);
+
+            return sign * y;
+        }
+    }    
 }
