@@ -17,7 +17,8 @@ namespace FaceSpasm1
     {
         NOFACE,
         NEXTFACE,
-        FOLLOW_FACE
+        FOLLOW_FACE,
+        WAIT
     }
 
 
@@ -43,8 +44,14 @@ namespace FaceSpasm1
         DateTime startTime = DateTime.Now;
         const double transitionTime = 1000;
 
-        Phases currentPhase = Phases.NOFACE;
+        Phases currentPhase = Phases.NEXTFACE;
         Phases lastPhase = Phases.NOFACE;
+
+        Image<Gray,byte> currentFace;
+
+        EigenFaceRecognizer faceRecognizer;
+        bool trained = false;
+
         private int interpolate(int a, int b, int percentage)
         {
             double smoothedPercentage = smooth(percentage);
@@ -139,11 +146,44 @@ namespace FaceSpasm1
                 {
                     var grayframe = imageFrame.Convert<Gray, byte>();
                     var faces = _cascadeClassifier.DetectMultiScale(grayframe, 1.1, 10, Size.Empty); //the actual face detection happens here
-
+                    
+                    
                     if (faces.Count() > 0)
                     {
-                        currentPhase = Phases.FOLLOW_FACE;
+                        //currentPhase = Phases.FOLLOW_FACE;
                         currentFaceIndex = 0;
+
+                        if(currentPhase == Phases.NEXTFACE)
+                        {
+                            faceRecognizer = new EigenFaceRecognizer(80, double.PositiveInfinity);
+                            currentFace = imageFrame.GetSubRect(faces[currentFaceIndex]).Convert<Gray, byte>().Resize(32, 32, Emgu.CV.CvEnum.Inter.Cubic);
+                            imageBox2.Image = currentFace;
+                            faceRecognizer.Train<Gray, byte>((new List<Image<Gray, byte>> { currentFace }).ToArray(), (new List<int> { 1 }).ToArray());
+                            currentPhase = Phases.FOLLOW_FACE;
+                            trained = true;
+
+                            lastRect = faces[currentFaceIndex];
+                            nextRect= faces[currentFaceIndex]; 
+                        }
+                        
+                        if(trained)
+                        {
+                            int count = 0;
+                            foreach (var face in faces)
+                            {
+                                var innerFace = imageFrame.GetSubRect(face).Convert<Gray, byte>().Resize(32, 32, Emgu.CV.CvEnum.Inter.Cubic);
+
+                                imageBox3.Image = innerFace;
+                                FaceRecognizer.PredictionResult pred = new FaceRecognizer.PredictionResult();
+                                pred = faceRecognizer.Predict(innerFace);
+                                Console.WriteLine(count.ToString() + " : " + pred.Distance.ToString("N4") + " : " + pred.Label.ToString());
+
+                                count++;
+                            }
+                        }
+                        
+                        
+                        
                     }
                     else
                     {
@@ -153,9 +193,10 @@ namespace FaceSpasm1
                     switch (currentPhase)
                     {
                         case Phases.FOLLOW_FACE:
-                            nextRect = faces[currentFaceIndex];
+                            //nextRect = faces[currentFaceIndex];
                             break;
                         case Phases.NEXTFACE:
+                        case Phases.WAIT:
                             break;
                         case Phases.NOFACE:
                             nextRect = new Rectangle(new Point(0, 0), imageFrame.Size);
@@ -177,6 +218,11 @@ namespace FaceSpasm1
                   
         }
         
+        private void lookForFace()
+        {
+
+        }
+
         static double Erf(double x)
         {
             // constants
@@ -199,5 +245,7 @@ namespace FaceSpasm1
 
             return sign * y;
         }
+
+        
     }
 }
