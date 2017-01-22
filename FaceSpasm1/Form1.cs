@@ -29,6 +29,7 @@ namespace FaceSpasm1
         private Capture _capture = new Emgu.CV.Capture();
         private CascadeClassifier _cascadeClassifier = new CascadeClassifier(Application.StartupPath + "/haarcascade_frontalface_default.xml");
         private CascadeClassifier _mouthClassifier = new CascadeClassifier(Application.StartupPath + "/haarcascade_mcs_mouth.xml");
+        private string recFilePath = Application.StartupPath + "/rec.yml";
         Random rnd = new Random();
 
         Rectangle next = new Rectangle(1, 1, 1, 1);
@@ -49,7 +50,7 @@ namespace FaceSpasm1
 
         Image<Gray,byte> currentFace;
 
-        EigenFaceRecognizer faceRecognizer;
+        FaceRecognizer faceRecognizer;
         bool trained = false;
 
         private int interpolate(int a, int b, int percentage)
@@ -155,10 +156,21 @@ namespace FaceSpasm1
 
                         if(currentPhase == Phases.NEXTFACE)
                         {
-                            faceRecognizer = new EigenFaceRecognizer(80, double.PositiveInfinity);
-                            currentFace = imageFrame.GetSubRect(faces[currentFaceIndex]).Convert<Gray, byte>().Resize(32, 32, Emgu.CV.CvEnum.Inter.Cubic);
+                            faceRecognizer = new FisherFaceRecognizer();
+                            currentFace = imageFrame.GetSubRect(faces[currentFaceIndex]).Convert<Gray, byte>().Resize(100, 100, Emgu.CV.CvEnum.Inter.Cubic);
+                            currentFace._EqualizeHist();
                             imageBox2.Image = currentFace;
-                            faceRecognizer.Train<Gray, byte>((new List<Image<Gray, byte>> { currentFace }).ToArray(), (new List<int> { 1 }).ToArray());
+                            try
+                            {
+                                faceRecognizer.Train<Gray, byte>((new List<Image<Gray, byte>> { currentFace }).ToArray(), (new List<int> { 1 }).ToArray());
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine(ex.Message);
+                            }
+                            
+                            //faceRecognizer.Save(recFilePath);
+
                             currentPhase = Phases.FOLLOW_FACE;
                             trained = true;
 
@@ -168,14 +180,16 @@ namespace FaceSpasm1
                         
                         if(trained)
                         {
+                            //faceRecognizer.Load(recFilePath);
                             int count = 0;
                             foreach (var face in faces)
                             {
-                                var innerFace = imageFrame.GetSubRect(face).Convert<Gray, byte>().Resize(32, 32, Emgu.CV.CvEnum.Inter.Cubic);
-
+                                var innerFace = imageFrame.GetSubRect(face).Convert<Gray, byte>().Resize(100, 100, Emgu.CV.CvEnum.Inter.Cubic);
+                                innerFace._EqualizeHist();
                                 imageBox3.Image = innerFace;
                                 FaceRecognizer.PredictionResult pred = new FaceRecognizer.PredictionResult();
                                 pred = faceRecognizer.Predict(innerFace);
+                                
                                 Console.WriteLine(count.ToString() + " : " + pred.Distance.ToString("N4") + " : " + pred.Label.ToString());
 
                                 count++;
