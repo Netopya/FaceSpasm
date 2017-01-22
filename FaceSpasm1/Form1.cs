@@ -34,6 +34,7 @@ namespace FaceSpasm1
         Rectangle next = new Rectangle(1, 1, 1, 1);
         Rectangle current = new Rectangle(1, 1, 1, 1);
         Rectangle lastRect = new Rectangle(1, 1, 1, 1);
+        Rectangle lastFace;
         Rectangle target;
 
         int myPercent = 0;
@@ -42,7 +43,7 @@ namespace FaceSpasm1
         int currentFaceIndex = 0;
 
         DateTime startTime = DateTime.Now;
-        const double transitionTime = 5000;
+        const double transitionTime = 1000;
         Phases currentPhase = Phases.FOLLOW_FACE;
         Phases lastPhase = Phases.NOFACE;
         
@@ -188,19 +189,22 @@ namespace FaceSpasm1
                                 current = interpolateRect(lastRect, target, (int)(Math.Floor((DateTime.Now.Subtract(startTime).TotalMilliseconds / transitionTime) * 100)));
                                 lastRect = new Rectangle(current.Location, current.Size);
                                 startTime = DateTime.Now;
+                                playSound();
 
                                 target = new Rectangle(new Point(0, 0), imageFrame.Size);
 
-                                currentPhase = Phases.NEXTFACE;
+                                currentPhase = Phases.NOFACE;
 
                                 break;
                             }
 
-                            if (DateTime.Now.Subtract(startTime).TotalMilliseconds > transitionTime)
+                            if (DateTime.Now.Subtract(startTime).TotalMilliseconds > transitionTime || faces.Count() <= currentFaceIndex)
                             {
                                 current = interpolateRect(lastRect, target, (int)(Math.Floor((DateTime.Now.Subtract(startTime).TotalMilliseconds / transitionTime) * 100)));
                                 lastRect = new Rectangle(current.Location, current.Size);
                                 startTime = DateTime.Now;
+
+                                int lastInt = currentFaceIndex;
 
                                 int chosenInt = currentFaceIndex;
 
@@ -215,14 +219,32 @@ namespace FaceSpasm1
                                 {
                                     chosenInt = 0;
                                 }
-                                
+
+
+                                if (lastInt != chosenInt)
+                                    playSound();
 
                                 target = faces[chosenInt];
+                                lastFace = new Rectangle(target.Location, target.Size);
 
                                 currentFaceIndex = chosenInt;
+
+
                             }
                             else
                             {
+                                int counter = 0;
+                                foreach(var face in faces)
+                                {
+                                    if(fuzzyCompare(lastFace, face, 0.3))
+                                    {
+                                        currentFaceIndex = counter;
+                                        break;
+                                    }
+
+                                    counter++;
+                                }
+
                                 target = faces[currentFaceIndex];
                             }
 
@@ -235,6 +257,7 @@ namespace FaceSpasm1
                                 current = interpolateRect(lastRect, target, (int)(Math.Floor((DateTime.Now.Subtract(startTime).TotalMilliseconds / transitionTime) * 100)));
                                 lastRect = new Rectangle(current.Location, current.Size);
                                 startTime = DateTime.Now;
+                                playSound();
 
                                 target = faces[rnd.Next(0, faces.Count())];
                             }
