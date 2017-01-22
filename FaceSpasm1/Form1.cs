@@ -189,7 +189,7 @@ namespace FaceSpasm1
                                 current = interpolateRect(lastRect, target, (int)(Math.Floor((DateTime.Now.Subtract(startTime).TotalMilliseconds / transitionTime) * 100)));
                                 lastRect = new Rectangle(current.Location, current.Size);
                                 startTime = DateTime.Now;
-                                playSound();
+                                //playSound();
 
                                 target = new Rectangle(new Point(0, 0), imageFrame.Size);
 
@@ -257,7 +257,7 @@ namespace FaceSpasm1
                                 current = interpolateRect(lastRect, target, (int)(Math.Floor((DateTime.Now.Subtract(startTime).TotalMilliseconds / transitionTime) * 100)));
                                 lastRect = new Rectangle(current.Location, current.Size);
                                 startTime = DateTime.Now;
-                                playSound();
+                                //playSound();
 
                                 target = faces[rnd.Next(0, faces.Count())];
                             }
