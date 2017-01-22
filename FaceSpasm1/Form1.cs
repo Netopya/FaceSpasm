@@ -68,6 +68,31 @@ namespace FaceSpasm1
             InitializeComponent();
         }
 
+        private Boolean fuzzyCompare(Rectangle a, Rectangle b, double fuzzFactor)
+        {
+            if((a.Height >= b.Height - (b.Height * fuzzFactor) && (a.Height <= b.Height + (b.Height * fuzzFactor))))
+            {
+                if ((a.Width >= b.Width - (b.Width * fuzzFactor) && (a.Width <= b.Width + (b.Width * fuzzFactor))))
+                {
+                    if ((a.X >= b.X - (b.X * fuzzFactor) && (a.X <= b.X + (b.X * fuzzFactor))))
+                    {
+                        if ((a.Y >= b.Y - (b.Y * fuzzFactor) && (a.Y <= b.Y + (b.Y * fuzzFactor))))
+                        {
+                            return true;
+                        }
+                        else
+                            return false;
+                    }
+                    else
+                        return false;
+                }
+                else
+                    return false;
+            }
+            else
+                return false;
+        }
+
         private void Form1_Load(object sender, EventArgs e)
         {
             backgroundWorker1.RunWorkerAsync();
