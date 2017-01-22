@@ -53,6 +53,10 @@ namespace FaceSpasm1
         FaceRecognizer faceRecognizer;
         bool trained = false;
 
+
+        List<Image<Gray, byte>> trainingimages = new List<Image<Gray, byte>>();
+        List<int> trainingLabels = new List<int>();
+
         private int interpolate(int a, int b, int percentage)
         {
             double smoothedPercentage = smooth(percentage);
@@ -156,13 +160,16 @@ namespace FaceSpasm1
 
                         if(currentPhase == Phases.NEXTFACE)
                         {
-                            faceRecognizer = new FisherFaceRecognizer();
+                            faceRecognizer = new EigenFaceRecognizer(80, double.PositiveInfinity);
                             currentFace = imageFrame.GetSubRect(faces[currentFaceIndex]).Convert<Gray, byte>().Resize(100, 100, Emgu.CV.CvEnum.Inter.Cubic);
                             currentFace._EqualizeHist();
                             imageBox2.Image = currentFace;
+
+                            trainingimages.Add(currentFace);
+                            trainingLabels.Add(1);
                             try
                             {
-                                faceRecognizer.Train<Gray, byte>((new List<Image<Gray, byte>> { currentFace }).ToArray(), (new List<int> { 1 }).ToArray());
+                                faceRecognizer.Train<Gray, byte>(trainingimages.ToArray(), trainingLabels.ToArray());
                             }
                             catch (Exception ex)
                             {
@@ -189,7 +196,9 @@ namespace FaceSpasm1
                                 imageBox3.Image = innerFace;
                                 FaceRecognizer.PredictionResult pred = new FaceRecognizer.PredictionResult();
                                 pred = faceRecognizer.Predict(innerFace);
-                                
+
+                                currentFace = innerFace;
+
                                 Console.WriteLine(count.ToString() + " : " + pred.Distance.ToString("N4") + " : " + pred.Label.ToString());
 
                                 count++;
@@ -260,6 +269,17 @@ namespace FaceSpasm1
             return sign * y;
         }
 
-        
+        private void button1_Click(object sender, EventArgs e)
+        {
+            //faceRecognizer.Train<Gray, byte>((new List<Image<Gray, byte>> { currentFace }).ToArray(), (new List<int> { 1 }).ToArray());
+            //
+
+            trainingimages.Add(currentFace);
+            trainingLabels.Add(1);
+
+            imageBox2.Image = currentFace;
+
+            faceRecognizer.Train<Gray, byte>(trainingimages.ToArray(), trainingLabels.ToArray());
+        }
     }
 }

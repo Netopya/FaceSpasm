@@ -35,6 +35,7 @@
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.imageBox2 = new Emgu.CV.UI.ImageBox();
             this.imageBox3 = new Emgu.CV.UI.ImageBox();
+            this.button1 = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.imageBox1)).BeginInit();
             this.tableLayoutPanel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.imageBox2)).BeginInit();
@@ -67,6 +68,7 @@
             this.tableLayoutPanel1.Controls.Add(this.imageBox1, 1, 0);
             this.tableLayoutPanel1.Controls.Add(this.imageBox2, 0, 0);
             this.tableLayoutPanel1.Controls.Add(this.imageBox3, 0, 1);
+            this.tableLayoutPanel1.Controls.Add(this.button1, 1, 1);
             this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 0);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
@@ -96,6 +98,16 @@
             this.imageBox3.TabIndex = 2;
             this.imageBox3.TabStop = false;
             // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(145, 133);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(75, 23);
+            this.button1.TabIndex = 3;
+            this.button1.Text = "button1";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -122,6 +134,7 @@
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
         private Emgu.CV.UI.ImageBox imageBox2;
         private Emgu.CV.UI.ImageBox imageBox3;
+        private System.Windows.Forms.Button button1;
     }
 }
 
