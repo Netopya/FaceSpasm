@@ -34,7 +34,7 @@ namespace FaceSpasm1
         Rectangle next = new Rectangle(1, 1, 1, 1);
         Rectangle current = new Rectangle(1, 1, 1, 1);
         Rectangle lastRect = new Rectangle(1, 1, 1, 1);
-        Rectangle nextRect = new Rectangle(1, 1, 1, 1);
+        Rectangle target;
 
         int myPercent = 0;
 
@@ -42,8 +42,8 @@ namespace FaceSpasm1
         int currentFaceIndex = 0;
 
         DateTime startTime = DateTime.Now;
-        const double transitionTime = 1000;
-        Phases currentPhase = Phases.NOFACE;
+        const double transitionTime = 5000;
+        Phases currentPhase = Phases.FOLLOW_FACE;
         Phases lastPhase = Phases.NOFACE;
         
         private int interpolate(int a, int b, int percentage)
@@ -60,6 +60,7 @@ namespace FaceSpasm1
 
         private Rectangle interpolateRect(Rectangle a, Rectangle b, int percentage)
         {
+            percentage = Math.Min(percentage, 100);
             return new Rectangle(interpolate(a.X, b.X, percentage), interpolate(a.Y, b.Y, percentage), interpolate(a.Width, b.Width, percentage), interpolate(a.Height, b.Height, percentage));
         }
 
@@ -176,41 +177,85 @@ namespace FaceSpasm1
                 if (imageFrame != null)
                 {
                     var grayframe = imageFrame.Convert<Gray, byte>();
-                    var faces = _cascadeClassifier.DetectMultiScale(grayframe, 1.1, 10, Size.Empty); //the actual face detection happens here
-
-                    if (faces.Count() > 0)
-                    {
-                        currentPhase = Phases.FOLLOW_FACE;
-                        currentFaceIndex = 0;
-                    }
-                    else
-                    {
-                        currentPhase = Phases.NOFACE;
-                    }
+                    var faces = _cascadeClassifier.DetectMultiScale(grayframe, 1.1, 10, Size.Empty); //the actual face detection happens here                    
 
                     switch (currentPhase)
                     {
                         case Phases.FOLLOW_FACE:
-                            nextRect = faces[currentFaceIndex];
-                            break;
-                        case Phases.NEXTFACE:
+
+                            if(faces.Count() == 0)
+                            {
+                                current = interpolateRect(lastRect, target, (int)(Math.Floor((DateTime.Now.Subtract(startTime).TotalMilliseconds / transitionTime) * 100)));
+                                lastRect = new Rectangle(current.Location, current.Size);
+                                startTime = DateTime.Now;
+
+                                target = new Rectangle(new Point(0, 0), imageFrame.Size);
+
+                                currentPhase = Phases.NEXTFACE;
+
+                                break;
+                            }
+
+                            if (DateTime.Now.Subtract(startTime).TotalMilliseconds > transitionTime)
+                            {
+                                current = interpolateRect(lastRect, target, (int)(Math.Floor((DateTime.Now.Subtract(startTime).TotalMilliseconds / transitionTime) * 100)));
+                                lastRect = new Rectangle(current.Location, current.Size);
+                                startTime = DateTime.Now;
+
+                                int chosenInt = currentFaceIndex;
+
+                                if(faces.Count() > 1)
+                                {
+                                    while (currentFaceIndex == chosenInt)
+                                    {
+                                        chosenInt = rnd.Next(0, faces.Count());
+                                    }
+                                }
+                                else
+                                {
+                                    chosenInt = 0;
+                                }
+                                
+
+                                target = faces[chosenInt];
+
+                                currentFaceIndex = chosenInt;
+                            }
+                            else
+                            {
+                                target = faces[currentFaceIndex];
+                            }
+
                             break;
                         case Phases.NOFACE:
-                            nextRect = new Rectangle(new Point(0, 0), imageFrame.Size);
+                            if(faces.Count() > 0)
+                            {
+                                currentPhase = Phases.FOLLOW_FACE;
+
+                                current = interpolateRect(lastRect, target, (int)(Math.Floor((DateTime.Now.Subtract(startTime).TotalMilliseconds / transitionTime) * 100)));
+                                lastRect = new Rectangle(current.Location, current.Size);
+                                startTime = DateTime.Now;
+
+                                target = faces[rnd.Next(0, faces.Count())];
+                            }
+
                             break;
                     }
 
 
-                    if(DateTime.Now.Subtract(startTime).TotalMilliseconds > transitionTime)
+                    /*if(DateTime.Now.Subtract(startTime).TotalMilliseconds > transitionTime)
                     {
-                        lastRect = new Rectangle(nextRect.Location, nextRect.Size);
+                        current = interpolateRect(lastRect, target, (int)(Math.Floor((DateTime.Now.Subtract(startTime).TotalMilliseconds / transitionTime) * 100)));
+                        lastRect = new Rectangle(current.Location, current.Size);
                         startTime = DateTime.Now;
-                    }
+                    }*/
 
-                    imageBox1.Image = imageFrame.GetSubRect(interpolateRect(lastRect, nextRect, (int)(Math.Floor((DateTime.Now.Subtract(startTime).TotalMilliseconds / transitionTime) * 100))));
+                    imageBox1.Image = imageFrame.GetSubRect(interpolateRect(lastRect, target, (int)(Math.Floor((DateTime.Now.Subtract(startTime).TotalMilliseconds / transitionTime) * 100))));
 
 
                 }
+
+                
             }
                   
         }
